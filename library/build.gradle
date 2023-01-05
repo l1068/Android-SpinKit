@@ -1,0 +1,81 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+android {
+
+    compileSdk 33
+    buildToolsVersion '33.0.1'
+
+    defaultConfig {
+        minSdk 19
+        targetSdk 33
+        versionName '2.0.0'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lint {
+        abortOnError false
+    }
+    
+     publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            group 'com.github.l1068'
+            artifactId 'Android-SpinKit'
+            version android.defaultConfig.versionName
+            afterEvaluate {
+                from components.release
+            }
+            pom {
+                name = 'Android-SpinKit'
+                description = 'Android-SpinKit'
+                url = 'https://github.com/l1068/Android-SpinKit'
+                developers {
+                    developer {
+                        name = 'l1068'
+                        url = 'https://github.com/l1068'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/l1068/Android-SpinKit.git'
+                    url = 'https://github.com/l1068/Android-SpinKit'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name 'ossrh'
+            url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials(PasswordCredentials)
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    def secretKeyRingFile = findProperty("signing.secretKeyRingFile")
+
+    if (secretKeyRingFile != null && file(secretKeyRingFile).exists()) {
+        sign publishing.publications
+    } else if (signingKey != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications
+    }
+}
